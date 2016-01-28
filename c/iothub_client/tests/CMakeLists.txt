@@ -27,7 +27,6 @@ if(${use_mqtt})
 	if(${use_amqp})
 		add_subdirectory(iothubclient_mqtt_e2etests)
 	endif()
-	add_subdirectory(mqttapi_paho_unittests)
 endif()
 
 add_subdirectory(version_unittests)

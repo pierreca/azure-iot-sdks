@@ -5,6 +5,8 @@
 
 var mqtt = require('mqtt');
 var MqttReceiver = require('./mqtt_receiver.js');
+var debug = require('debug')('mqtt-common');
+var PackageJson = require('../package.json');
 
 /**
  * @class           module:azure-iot-mqtt-base.Mqtt
@@ -29,26 +31,34 @@ function Mqtt(config) {
   if ((!config) ||
     (!config.host) ||
     (!config.deviceId) ||
-    (!config.sharedAccessSignature) ||
-    (!config.gatewayHostName))
+    (!config.sharedAccessSignature))
     throw new ReferenceError('Invalid transport configuration');
 
-  this._gatewayHostName = config.gatewayHostName;
-  this._topic_publish = "devices/" + config.deviceId + "/messages/events";
-  this._topic_subscribe = "devices/" + config.deviceId + "/messages/devicebound";
+  this._hostName = 'mqtts://' + config.host;
+  this._topic_publish = "devices/" + config.deviceId + "/messages/events/";
+  this._topic_subscribe = "devices/" + config.deviceId + "/messages/devicebound/#";
+  debug('topic publish: ' + this._topic_publish);
+  debug('topic subscribe: ' + this._topic_subscribe);
+  var versionString = encodeURIComponent('azure-iot-device/' + PackageJson.version);
   this._options =
   {
     cmd: 'connect',
     protocolId: 'MQTT',
     protocolVersion: 4,
-    clean: false,
+    clean: true,
     clientId: config.deviceId,
-    username: config.host + '/' + config.deviceId,
+    username: config.host + '/' + config.deviceId + '/DeviceClientType=' + versionString,
     password: new Buffer(config.sharedAccessSignature),
-    rejectUnauthorized: false,
+    rejectUnauthorized: false
   };
+<<<<<<< HEAD
   this._receiver = null;
   
+=======
+  
+  debug('username: ' + this._options.username);
+  debug('hostname: ' + this._hostName);
+>>>>>>> develop
   return this;
 }
 
@@ -60,16 +70,28 @@ function Mqtt(config) {
  */
 /* SRS_NODE_HTTP_12_005: The CONNECT method shall call connect on MQTT.JS  library and return a promise with the result */
 Mqtt.prototype.connect = function (done) {
-  this.client = mqtt.connect(this._gatewayHostName, this._options);
+  this.client = mqtt.connect(this._hostName, this._options);
   if (done) {
     var errCallback = function (error) {
       done(error);
     };
     this.client.on('error', errCallback);
 
-    this.client.on('connect', function () {
+    this.client.on('close', function(){
+       debug('MQTT: Device connection to the server has been closed'); 
+    });
+    
+    this.client.on('offline', function(){
+       debug('MQTT: Device is offline'); 
+    });
+    
+    this.client.on('reconnect', function(){
+       debug('MQTT: Device is trying to reconnect'); 
+    });
+    
+    this.client.on('connect', function (connack) {
       this.client.removeListener('error', errCallback);
-      done();
+      done(null, connack);
     }.bind(this));
   }
 };
@@ -107,12 +129,13 @@ Mqtt.prototype.publish = function (message, done) {
     };
     this.client.on('error', errCallback);
   }
-  this.client.publish(this._topic_publish, message.data.toString(), function () {
+  
+  this.client.publish(this._topic_publish, message.data.toString(), { qos : 1, retain: false }, function (err, puback) {
     if (done) {
       this.client.removeListener('error', errCallback);
-      done();
+      done(err, puback);
     }
-  });
+  }.bind(this));
 };
 
 /**
@@ -121,6 +144,24 @@ Mqtt.prototype.publish = function (message, done) {
  * 
  * @param {Function}    done   callback that shall be called with a receiver object instance. 
  */
+<<<<<<< HEAD
+=======
+/* Codes_SRS_NODE_HTTP_12_008: The SUBSCRIBE method shall call subscribe on MQTT.JS library with the given message and with the hardcoded topic path */
+Mqtt.prototype.subscribe = function (done) {
+  if (done) {
+    var errCallback = function (error) {
+      done(error);
+    };
+    this.client.on('error', errCallback);
+  }
+  this.client.subscribe(this._topic_subscribe, { qos: 1 }, function (err, res) {
+    if (done) {
+      this.client.removeListener('error', errCallback);
+      done(err, res);
+    }
+  }.bind(this));
+};
+>>>>>>> develop
 
 /*Codes_SRS_NODE_DEVICE_MQTT_16_002: [If a receiver for this endpoint has already been created, the getReceiver method should call the done() method with the existing instance as an argument.] */
 /*Codes_SRS_NODE_DEVICE_MQTT_16_003: [If a receiver for this endpoint doesn’t exist, the getReceiver method should create a new MqttReceiver object and then call the done() method with the object that was just created as an argument.] */
@@ -128,8 +169,16 @@ Mqtt.prototype.getReceiver = function (done) {
   if (!this._receiver) {
       this._receiver = new MqttReceiver(this.client);
   }
+<<<<<<< HEAD
   
   done(null, this._receiver);
+=======
+  this.client.on('message', function (topic, msg) {
+    this.client.removeListener('error', errCallback);
+    debug('message! ' + topic + ' ' + msg);
+    if (done) done(topic, msg);
+  }.bind(this));
+>>>>>>> develop
 };
 
 module.exports = Mqtt;
