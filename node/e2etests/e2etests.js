@@ -2,10 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 'use strict';
-var serviceSDK = require('azure-iothub');
-var deviceSDK = require('azure-iot-device');
-var deviceAMQP = require('azure-iot-device-amqp');
-var deviceHTTP = require('azure-iot-device-http');
+var serviceSdk = require('azure-iothub');
+var deviceSdk = require('azure-iot-device');
+var deviceAmqp = require('azure-iot-device-amqp');
+var deviceHttp = require('azure-iot-device-http');
 
 var ConnectionString = require('azure-iot-common').ConnectionString;
 
@@ -19,8 +19,8 @@ var runTests = function (DeviceTransport, hubConnStr, deviceConStr, deviceName) 
         var serviceClient, deviceClient;
         
         beforeEach(function(){
-            serviceClient =  serviceSDK.Client.fromConnectionString(hubConnStr);
-            deviceClient = deviceSDK.Client.fromConnectionString(deviceConStr, DeviceTransport);  
+            serviceClient =  serviceSdk.Client.fromConnectionString(hubConnStr);
+            deviceClient = deviceSdk.Client.fromConnectionString(deviceConStr, DeviceTransport);  
         });
         
         afterEach(function(){
@@ -28,7 +28,7 @@ var runTests = function (DeviceTransport, hubConnStr, deviceConStr, deviceName) 
             deviceClient = null;
         });
         
-        it.skip('Service sends 1 C2D message and it is re-sent until the device completes it', function(done)
+        it('Service sends 1 C2D message and it is re-sent until the device completes it', function(done)
         {
             this.timeout(15000);
             var guid = uuid.v4();
@@ -144,27 +144,27 @@ var runTests = function (DeviceTransport, hubConnStr, deviceConStr, deviceName) 
                done(); 
             };
             
-            // deviceClient.open(function (openErr, openRes) {
-            //     deviceClient.getReceiver(function (err, receiver) {
-            //         assert.isNull(err);
-            //         receiver.on('errorReceived', function (err) {
-            //            assert.Fail('Device received an error: ' + err.message); 
-            //         });
-            //         receiver.on('message', function (msg) {
-            //             deviceMessageCounter++;
-            //             debug('Received ' + deviceMessageCounter + ' message(s)');
-            //             receiver.complete(msg);
+            deviceClient.open(function (openErr, openRes) {
+                deviceClient.getReceiver(function (err, receiver) {
+                    assert.isNull(err);
+                    receiver.on('errorReceived', function (err) {
+                       assert.Fail('Device received an error: ' + err.message); 
+                    });
+                    receiver.on('message', function (msg) {
+                        deviceMessageCounter++;
+                        debug('Received ' + deviceMessageCounter + ' message(s)');
+                        receiver.complete(msg);
                         
-            //             if(deviceMessageCounter === 5) {
-            //                 closeConnectionsAndTerminateTest();
-            //             }
-            //         });
-            //     });
-            // });
+                        if(deviceMessageCounter === 5) {
+                            closeConnectionsAndTerminateTest();
+                        }
+                    });
+                });
+            });
             
             serviceClient.open(function () {
                 var msgSentCounter = 0;
-                for (var i = 0; i < 50; i++) {
+                for (var i = 0; i < 5; i++) {
                     debug('Sending message #' + i);
                     serviceClient.send(deviceName, { 'counter' : i }, function (sendErr, sendRes) {
                         assert.isNull(sendErr);
@@ -184,5 +184,5 @@ var host = ConnectionString.parse(process.env.IOTHUB_CONNECTION_STRING).HostName
 var deviceConnectionString = 'HostName=' + host + ';DeviceId=' + process.env.IOTHUB_DEVICE_ID + ';SharedAccessKey=' + process.env.IOTHUB_DEVICE_KEY;
 var deviceName = process.env.IOTHUB_DEVICE_ID;
 
-runTests(deviceAMQP.Amqp, hubConnectionString, deviceConnectionString, deviceName);
-//runTests(deviceHTTP.Http, hubConnectionString, deviceConnectionString, deviceName);
+runTests(deviceAmqp.Amqp, hubConnectionString, deviceConnectionString, deviceName);
+runTests(deviceHttp.Http, hubConnectionString, deviceConnectionString, deviceName);

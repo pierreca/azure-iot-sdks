@@ -15,7 +15,7 @@ module.exports = {
   ConnectionString: require('./lib/connection_string.js'),
   endpoint: require('./lib/endpoint.js'),
   errors: require('./lib/errors.js'),
-  success: require('./lib/success.js'),
+  results: require('./lib/results.js'),
   Message: require('./lib/message.js'),
   SharedAccessSignature: require('./lib/shared_access_signature.js')
 };

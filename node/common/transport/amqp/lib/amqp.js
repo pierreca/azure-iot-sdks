@@ -7,7 +7,7 @@ var amqp10 = require('amqp10');
 var AmqpMessage = require('./amqp_message.js');
 var AmqpReceiver = require('./amqp_receiver.js');
 var errors = require('azure-iot-common').errors;
-var success = require('azure-iot-common').success;
+var results = require('azure-iot-common').results;
 
 /**
  * @class module:azure-iot-amqp-base.Amqp
@@ -80,9 +80,9 @@ Amqp.prototype.connect = function connect(done) {
   }
 
   this._connectPromise
-    .then(function (res) {
+    .then(function (result) {
       /*Codes_SRS_NODE_COMMON_AMQP_16_002: [The connect method shall establish a connection with the IoT hub instance and call the done() callback if given as argument] */
-      if (done) done();
+      if (done) done(null, result);
       return null;
     })
     .catch(function (err) {
@@ -99,9 +99,9 @@ Amqp.prototype.connect = function connect(done) {
 Amqp.prototype.disconnect = function disconnect(done) {
   this._connectPromise = null;
   this._amqp.disconnect()
-    .then(function (res) {
+    .then(function (result) {
       /*Codes_SRS_NODE_COMMON_AMQP_16_004: [The disconnect method shall call the done callback when the application/service has been successfully disconnected from the service] */
-      if (done) done();
+      if (done) done(null, result);
       return null;
     })
     .catch(function (err) {
@@ -137,7 +137,7 @@ Amqp.prototype.send = function send(message, endpoint, to, done) {
         sender.send(msg)
               .then(function (state) {
                   if (done) {
-                      var result = new success.MessageAccepted(state);
+                      var result = new results.MessageEnqueued(state);
                       done(null, result);
                   }
               })

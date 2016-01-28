@@ -4,6 +4,7 @@
 'use strict';
 
 var mqtt = require('mqtt');
+var MqttReceiver = require('./mqtt_receiver.js');
 
 /**
  * @class           module:azure-iot-mqtt-base.Mqtt
@@ -46,6 +47,8 @@ function Mqtt(config) {
     password: new Buffer(config.sharedAccessSignature),
     rejectUnauthorized: false,
   };
+  this._receiver = null;
+  
   return this;
 }
 
@@ -113,45 +116,20 @@ Mqtt.prototype.publish = function (message, done) {
 };
 
 /**
- * @method            module:azure-iot-mqtt-base.Mqtt#subscribe
- * @description       Subscribes to messages coming from the IoT Hub instance.
+ * @method              module:azure-iot-device-mqtt.Mqtt#getReceiver
+ * @description         Gets a receiver object that is used to receive and settle messages.
  * 
- * @param {Function}  done  Callback that shall be called when the subscription is successful or if an error happens.
+ * @param {Function}    done   callback that shall be called with a receiver object instance. 
  */
-/* Codes_SRS_NODE_HTTP_12_008: The SUBSCRIBE method shall call subscribe on MQTT.JS library with the given message and with the hardcoded topic path */
-Mqtt.prototype.subscribe = function (done) {
-  if (done) {
-    var errCallback = function (error) {
-      done(error);
-    };
-    this.client.on('error', errCallback);
-  }
-  this.client.subscribe(this._topic_subscribe, function () {
-    if (done) {
-      this.client.removeListener('error', errCallback);
-      done();
-    }
-  });
-};
 
-/**
- * @method            module:azure-iot-mqtt-base.Mqtt#receive
- * @description       Receives messages from the IoT Hub instance.
- * 
- * @param {Function}  done  Callback that shall be called when a message arrives or if an error happens.
- */
-/* Codes_SRS_NODE_HTTP_12_010: The RECEIVE method shall implement the MQTT.JS library callback event and calls back to the caller with the given callback */
-Mqtt.prototype.receive = function (done) {
-  if (done) {
-    var errCallback = function (error) {
-      done(error);
-    };
-    this.client.on('error', errCallback);
+/*Codes_SRS_NODE_DEVICE_MQTT_16_002: [If a receiver for this endpoint has already been created, the getReceiver method should call the done() method with the existing instance as an argument.] */
+/*Codes_SRS_NODE_DEVICE_MQTT_16_003: [If a receiver for this endpoint doesn’t exist, the getReceiver method should create a new MqttReceiver object and then call the done() method with the object that was just created as an argument.] */
+Mqtt.prototype.getReceiver = function (done) {
+  if (!this._receiver) {
+      this._receiver = new MqttReceiver(this.client);
   }
-  this.client.on('message', function (topic, msg) {
-    this.client.removeListener('error', errCallback);
-    if (done) done(topic, msg);
-  }.bind(this));
+  
+  done(null, this._receiver);
 };
 
 module.exports = Mqtt;

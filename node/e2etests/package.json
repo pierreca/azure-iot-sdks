@@ -1,8 +1,9 @@
 {
   "name": "azure-iot-e2etests",
-  "version": "1.0.0-preview.11",
   "description": "Azure IoT end-to-end tests",
   "author": "Microsoft Corporation",
+  "version": "0.0.1",
+  "private": true,
   "license": "MIT",
   "main": "e2etests.js",
   "dependencies": {
