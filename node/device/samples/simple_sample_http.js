@@ -55,6 +55,6 @@ client.getReceiver(function(err, receiver) {
 function printResultFor(op) {
   return function printResult(err, res) {
     if (err) console.log(op + ' error: ' + err.toString());
-    if (res) console.log(op + ' status: ' + res.transportObj.statusCode + ' ' + res.transportObj.statusMessage);
+    if (res) console.log(op + ' status: ' + res.constructor.name + ' (' + res.transportObj.statusCode + ': ' + res.transportObj.statusMessage + ')');
   };
 }

@@ -33,7 +33,7 @@ describe('MqttReceiver', function (){
        EventEmitter.call(this);
        this._client = client;
        this._topic = topic;
-       this.subscribe = function(topic, callback) { callback(); };
+       this.subscribe = function(topic, options, callback) { callback(); };
        this.unsubscribe = function(topic, callback) { callback(); };
        this.emitMessage = function(eventName, content) {
            this.emit(eventName, content);
@@ -47,9 +47,10 @@ describe('MqttReceiver', function (){
        it('subscribes to the topic when a listener is added', function() {
            var topicName = 'topic_subscribe_name';
            var mqttClient = new FakeMqttClient();
-           mqttClient.subscribe = sinon.stub(mqttClient, 'subscribe', function(topic, callback){
-              assert.equal(topic, topicName);
-              callback(); 
+           mqttClient.subscribe = sinon.stub(mqttClient, 'subscribe', function(topic, options, callback){
+               assert.isOk(options);
+               assert.equal(topic, topicName);
+               callback(); 
            });
            
            var receiver = new MqttReceiver(mqttClient, topicName);
@@ -66,8 +67,8 @@ describe('MqttReceiver', function (){
            var mqttClient = new FakeMqttClient();
            var receiver = new MqttReceiver(mqttClient, 'topic');
            receiver.on('message', function(msg){
-              assert.equal(msg.constructor.name, 'Message');
-              done(); 
+               assert.equal(msg.constructor.name, 'Message');
+               done(); 
            });
            
            mqttClient.emitMessage('message', 'foo');
@@ -77,13 +78,14 @@ describe('MqttReceiver', function (){
        it('unsubscribes from the topic when there are no more listeners', function() {
            var topicName = 'topic_subscribe_name';
            var mqttClient = new FakeMqttClient();
-           mqttClient.subscribe = sinon.stub(mqttClient, 'subscribe', function(topic, callback){
-              assert.equal(topic, topicName);
-              callback(); 
+           mqttClient.subscribe = sinon.stub(mqttClient, 'subscribe', function(topic, options, callback){
+               assert.isOk(options);
+               assert.equal(topic, topicName);
+               callback(); 
            });
            mqttClient.unsubscribe = sinon.stub(mqttClient, 'unsubscribe', function(topic, callback){
-              assert.equal(topic, topicName);
-              callback(); 
+               assert.equal(topic, topicName);
+               callback(); 
            });
            
            var listener1 = function (){};
