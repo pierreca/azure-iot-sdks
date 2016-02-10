@@ -1,0 +1,36 @@
+<h1>Welcome to the Azure IoT Device Simulator</h1>
+<script>
+$(function(){
+    $('#listenBtn').on('click', function(){
+        setInterval(function() {
+            console.log('Receiving messages...');
+            $.get( '/receive', function(data) {
+                console.log(data);
+                var divContent = "";
+                data.messages.forEach(function(message) {
+                    divContent += "<p>" + message + "</p>"
+                });
+                $('#messages').html(divContent);
+            });
+        }, 1000);
+    });
+});
+</script>
+<form method="POST" action="/connect">
+    <p> Device Connection String:
+        <input type="text" name="connectionString" />
+        <input type="submit" value="connect" />
+    </p>
+</form>
+<form method="POST" action="/send">
+    <p> Send a message: 
+        <textarea name="messageToSend"></textarea>
+    </p>
+    {{#if showMessage}}
+    <p><strong>{{message}}</strong></p>
+    {{/if}}
+    <input type="submit" value="send" />
+</form>
+
+<input type="button" id="listenBtn" value="Start listening for messages" />
+<div id="messages"></div>

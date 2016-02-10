@@ -1,0 +1,21 @@
+{
+  "name": "azure-iot-device-simulator",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Device Simulator for Azure IoT Hub",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Microsoft Corporation",
+  "license": "MIT",
+  "dependencies": {
+    "azure-iot-common": "^1.0.0",
+    "azure-iot-device": "^1.0.0",
+    "azure-iot-device-http": "^1.0.0",
+    "body-parser": "^1.14.2",
+    "express": "^4.13.4",
+    "express-handlebars": "^3.0.0",
+    "express-session": "^1.13.0"
+  }
+}
